@@ -1,7 +1,3 @@
-import hashlib
-import time
-from decimal import Decimal, getcontext
-
 class Block {
     constructor(index, timestamp, data, previousHash) {
         this.index = index;
@@ -12,9 +8,9 @@ class Block {
     }
 
     hashBlock() {
-        const sha = crypto.createHash('sha256');
+        const sha = sha256.create();
         sha.update(`${this.index}${this.timestamp}${this.data}${this.previousHash}`);
-        return sha.digest('hex');
+        return sha.hex();
     }
 }
 
@@ -30,16 +26,16 @@ function bbpTerm(k) {
 }
 
 function calculatePiBbp(precision) {
-    getcontext().prec = precision + 10;
+    Decimal.set({ precision: precision + 10 });  // Extra precision to handle rounding errors
     const pi = Array.from({ length: precision }, (_, k) => bbpTerm(k))
         .reduce((acc, term) => acc.plus(term), new Decimal(0));
     return [pi.toString(), pi];
 }
 
 function hashSegment(segment) {
-    const sha = crypto.createHash('sha256');
+    const sha = sha256.create();
     sha.update(segment);
-    return sha.digest('hex');
+    return sha.hex();
 }
 
 function createGenesisBlock() {
@@ -61,6 +57,26 @@ function displayPiValue(piApprox, precision) {
     const truncatedPi = piApprox.toString().substring(0, 10);
     console.log(`Approximate value of pi: ${truncatedPi}... with ${precision} decimal places`);
 }
+
+async function connectMetaMask() {
+    if (window.ethereum) {
+        try {
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const web3 = new Web3(window.ethereum);
+            const accounts = await web3.eth.getAccounts();
+            const account = accounts[0];
+            document.getElementById('accountAddress').innerText = `Connected account: ${account}`;
+            console.log(`Connected account: ${account}`);
+            document.getElementById('startMining').disabled = false; // Enable mining button
+        } catch (error) {
+            console.error('User denied account access', error);
+        }
+    } else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+    }
+}
+
+document.getElementById('connectMetamask').addEventListener('click', connectMetaMask);
 
 document.getElementById('startMining').addEventListener('click', () => {
     const initialPrecision = 5;
