@@ -195,5 +195,10 @@ async function addBlock() {
     const accounts = await web3.eth.getAccounts();
     const blockchainLength = await contract.methods.getBlockchainLength().call();
     const previousBlock = await contract.methods.getBlock(blockchainLength - 1).call();
-    const data = 'New Block Data';
-    const previousHash
+    const data = 'New Block     const previousHash = previousBlock.hash;
+
+    await contract.methods.addBlock(data, previousHash).send({ from: accounts[0] });
+    loadBlockchain();
+}
+
+window.onload = loadBlockchain;
